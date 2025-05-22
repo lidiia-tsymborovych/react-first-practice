@@ -22,7 +22,7 @@ export const PanelBlocksContainer = ({
               data-cy="FilterUser"
               href="#/"
               className={ownerFilter === owner ? 'is-active' : ''}
-              onClick={onFilterByUserButton}
+              onClick={() => onFilterByUserButton(owner)}
             >
               {owner}
             </a>
