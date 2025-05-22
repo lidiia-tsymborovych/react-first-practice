@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable jsx-a11y/accessible-emoji */
 import React, { useState } from 'react';
 import './App.scss';
@@ -29,12 +30,19 @@ const CATEGORIES = [
   ...categoriesFromServer.map(category => category.title),
 ];
 
+const ORDER = {
+  asc: 1,
+  desc: 2,
+  reset: 0,
+};
+
 export const App = () => {
-  // const [filteredProducts, setFilteredProducts] = useState(products);
   const [ownerFilter, setOwnerFilter] = useState(OWNERS[0]);
   const [query, setQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
-  // const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
+  const [order, setOrder] = useState(ORDER.reset);
+  const [sortParams, setSortParams] = useState(null);
+
   const getFilteredProducts = (ownerFilterParam, newQuery, categories) => {
     let filteredProducts = products;
 
@@ -65,12 +73,6 @@ export const App = () => {
     return filteredProducts;
   };
 
-  const filteredProducts = getFilteredProducts(
-    ownerFilter,
-    query,
-    selectedCategories,
-  );
-
   const handleClickFilterByCategoryButton = category => {
     if (category === CATEGORIES[0]) {
       setSelectedCategories([]);
@@ -86,6 +88,43 @@ export const App = () => {
       return [...currentSelectedCategories, category];
     });
   };
+
+  const filteredProducts = getFilteredProducts(
+    ownerFilter,
+    query,
+    selectedCategories,
+  );
+
+  const getSortedProducts = (productsToSort, params, orderToSort) => {
+    if (!orderToSort || !params) {
+      return productsToSort;
+    }
+
+    let sortedProducts = [...productsToSort];
+
+    sortedProducts = sortedProducts.sort((product1, product2) => {
+      switch (true) {
+        case params === COLUMNS[0]:
+          return product1.id - product2.id;
+        case params === COLUMNS[1]:
+          return product1.name.localeCompare(product2.name);
+        case params === COLUMNS[2]:
+          return product1.category.title.localeCompare(product2.category.title);
+        case params === COLUMNS[3]:
+          return product1.user.name.localeCompare(product2.user.name);
+        default:
+          return null;
+      }
+    });
+
+    if (orderToSort === ORDER.desc) {
+      return sortedProducts.reverse();
+    }
+
+    return sortedProducts;
+  };
+
+  const sortedProducts = getSortedProducts(filteredProducts, sortParams, order);
 
   return (
     <div className="section">
@@ -151,7 +190,9 @@ export const App = () => {
                       ? 'is-success'
                       : ''
                   } ${selectedCategories.includes(category) ? 'is-info' : ''}`}
-                  onClick={() => handleClickFilterByCategoryButton(category)}
+                  onClick={() => {
+                    handleClickFilterByCategoryButton(category);
+                  }}
                 >
                   {category}
                 </a>
@@ -193,9 +234,26 @@ export const App = () => {
                     <th key={col}>
                       <span className="is-flex is-flex-wrap-nowrap">
                         {col}
-                        <a href="#/">
+                        <a
+                          href="#/"
+                          onClick={() => {
+                            setSortParams(col);
+                            setOrder(order < 2 ? order + 1 : 0);
+                          }}
+                        >
                           <span className="icon">
-                            <i data-cy="SortIcon" className="fas fa-sort" />
+                            <i
+                              data-cy="SortIcon"
+                              className={`fas ${
+                                sortParams === col
+                                  ? order === ORDER.asc
+                                    ? 'fa-sort-up'
+                                    : order === ORDER.desc
+                                      ? 'fa-sort-down'
+                                      : 'fa-sort'
+                                  : 'fa-sort'
+                              }`}
+                            />
                           </span>
                         </a>
                       </span>
@@ -203,54 +261,10 @@ export const App = () => {
                   ))}
                 </tr>
               )}
-
-              {/* <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      ID
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Product
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-down" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Category
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-up" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      User
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th> */}
             </thead>
 
             <tbody>
-              {filteredProducts.map(product => {
+              {sortedProducts.map(product => {
                 const { user, category } = product;
 
                 return (
