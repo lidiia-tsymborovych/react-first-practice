@@ -24,17 +24,18 @@ const products = productsFromServer.map(product => {
 const OWNERS = ['All', ...usersFromServer.map(user => user.name)];
 const COLUMNS = ['ID', 'PRODUCT', 'CATEGORY', 'USER'];
 
-// const Filters = [
-//   'All',
-//   ...categoriesFromServer.map(category => category.title),
-// ];
+const CATEGORIES = [
+  'All',
+  ...categoriesFromServer.map(category => category.title),
+];
 
 export const App = () => {
   // const [filteredProducts, setFilteredProducts] = useState(products);
   const [ownerFilter, setOwnerFilter] = useState(OWNERS[0]);
   const [query, setQuery] = useState('');
-
-  const getFilteredProducts = (ownerFilterParam, newQuery) => {
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  // const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
+  const getFilteredProducts = (ownerFilterParam, newQuery, categories) => {
     let filteredProducts = products;
 
     if (newQuery) {
@@ -47,18 +48,44 @@ export const App = () => {
       });
     }
 
-    if (ownerFilterParam === OWNERS[0]) {
+    if (ownerFilterParam !== OWNERS[0]) {
+      filteredProducts = filteredProducts.filter(
+        product => product.user.name === ownerFilterParam,
+      );
+    }
+
+    if (!categories.length) {
       return filteredProducts;
     }
 
-    filteredProducts = filteredProducts.filter(
-      product => product.user.name === ownerFilterParam,
-    );
+    filteredProducts = filteredProducts.filter(product => {
+      return categories.includes(product.category.title);
+    });
 
     return filteredProducts;
   };
 
-  const filteredProducts = getFilteredProducts(ownerFilter, query);
+  const filteredProducts = getFilteredProducts(
+    ownerFilter,
+    query,
+    selectedCategories,
+  );
+
+  const handleClickFilterByCategoryButton = category => {
+    if (category === CATEGORIES[0]) {
+      setSelectedCategories([]);
+
+      return;
+    }
+
+    setSelectedCategories(currentSelectedCategories => {
+      if (currentSelectedCategories.includes(category)) {
+        return currentSelectedCategories.filter(c => c !== category);
+      }
+
+      return [...currentSelectedCategories, category];
+    });
+  };
 
   return (
     <div className="section">
@@ -113,46 +140,22 @@ export const App = () => {
             </div>
 
             <div className="panel-block is-flex-wrap-wrap">
-              {/* {COLUMNS.map(col => (
+              {CATEGORIES.map(category => (
                 <a
-                  key={col}
+                  key={category}
                   href="#/"
                   data-cy="AllCategories"
-                  className="button is-success mr-6 is-outlined"
+                  className={`button mr-2 my-1 ${
+                    category === CATEGORIES[0] &&
+                    selectedCategories.length === 0
+                      ? 'is-success'
+                      : ''
+                  } ${selectedCategories.includes(category) ? 'is-info' : ''}`}
+                  onClick={() => handleClickFilterByCategoryButton(category)}
                 >
-                  {col}
+                  {category}
                 </a>
-              ))} */}
-              <a
-                href="#/"
-                data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
-              >
-                All
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
-
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
+              ))}
             </div>
 
             <div className="panel-block">
@@ -163,6 +166,7 @@ export const App = () => {
                 onClick={() => {
                   setQuery('');
                   setOwnerFilter(OWNERS[0]);
+                  setSelectedCategories([]);
                 }}
               >
                 Reset all filters
