@@ -26,16 +26,33 @@ const OWNERS = ['All', ...usersFromServer.map(user => user.name)];
 export const App = () => {
   // const [filteredProducts, setFilteredProducts] = useState(products);
   const [ownerFilter, setOwnerFilter] = useState(OWNERS[0]);
+  const [query, setQuery] = useState('');
 
-  const getProductsFiltedByOwner = ownerFilterParam => {
-    if (ownerFilterParam === OWNERS[0]) {
-      return products;
+  const getFilteredProducts = (ownerFilterParam, newQuery) => {
+    let filteredProducts = products;
+
+    if (newQuery) {
+      const queryNormalised = newQuery.trim().toLowerCase();
+
+      filteredProducts = filteredProducts.filter(product => {
+        const productNameNormalised = product.name.trim().toLowerCase();
+
+        return productNameNormalised.includes(queryNormalised);
+      });
     }
 
-    return products.filter(product => product.user.name === ownerFilterParam);
+    if (ownerFilterParam === OWNERS[0]) {
+      return filteredProducts;
+    }
+
+    filteredProducts = filteredProducts.filter(
+      product => product.user.name === ownerFilterParam,
+    );
+
+    return filteredProducts;
   };
 
-  const productsFiltedByOwner = getProductsFiltedByOwner(ownerFilter);
+  const productsFiltedByOwner = getFilteredProducts(ownerFilter, query);
 
   return (
     <div className="section">
@@ -67,7 +84,8 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={query}
+                  onChange={event => setQuery(event.target.value.trimStart())}
                 />
 
                 <span className="icon is-left">
@@ -76,11 +94,14 @@ export const App = () => {
 
                 <span className="icon is-right">
                   {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
+                  {query && (
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setQuery('')}
+                    />
+                  )}
                 </span>
               </p>
             </div>
