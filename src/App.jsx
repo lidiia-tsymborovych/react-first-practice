@@ -22,6 +22,12 @@ const products = productsFromServer.map(product => {
 });
 
 const OWNERS = ['All', ...usersFromServer.map(user => user.name)];
+const COLUMNS = ['ID', 'PRODUCT', 'CATEGORY', 'USER'];
+
+// const Filters = [
+//   'All',
+//   ...categoriesFromServer.map(category => category.title),
+// ];
 
 export const App = () => {
   // const [filteredProducts, setFilteredProducts] = useState(products);
@@ -52,7 +58,7 @@ export const App = () => {
     return filteredProducts;
   };
 
-  const productsFiltedByOwner = getFilteredProducts(ownerFilter, query);
+  const filteredProducts = getFilteredProducts(ownerFilter, query);
 
   return (
     <div className="section">
@@ -107,6 +113,16 @@ export const App = () => {
             </div>
 
             <div className="panel-block is-flex-wrap-wrap">
+              {/* {COLUMNS.map(col => (
+                <a
+                  key={col}
+                  href="#/"
+                  data-cy="AllCategories"
+                  className="button is-success mr-6 is-outlined"
+                >
+                  {col}
+                </a>
+              ))} */}
               <a
                 href="#/"
                 data-cy="AllCategories"
@@ -143,7 +159,11 @@ export const App = () => {
               <a
                 data-cy="ResetAllButton"
                 href="#/"
-                className="button is-link is-outlined is-fullwidth"
+                className={`button is-link is-fullwidth ${query || ownerFilter !== OWNERS[0] ? 'is-outlined' : ''} `}
+                onClick={() => {
+                  setQuery('');
+                  setOwnerFilter(OWNERS[0]);
+                }}
               >
                 Reset all filters
               </a>
@@ -152,64 +172,81 @@ export const App = () => {
         </div>
 
         <div className="box table-container">
-          <p data-cy="NoMatchingMessage">
-            No products matching selected criteria
-          </p>
+          {!filteredProducts.length && (
+            <p data-cy="NoMatchingMessage">
+              No products matching selected criteria
+            </p>
+          )}
 
           <table
             data-cy="ProductTable"
             className="table is-striped is-narrow is-fullwidth"
           >
             <thead>
-              <tr>
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    ID
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort" />
+              {filteredProducts.length > 0 && (
+                <tr>
+                  {COLUMNS.map(col => (
+                    <th key={col}>
+                      <span className="is-flex is-flex-wrap-nowrap">
+                        {col}
+                        <a href="#/">
+                          <span className="icon">
+                            <i data-cy="SortIcon" className="fas fa-sort" />
+                          </span>
+                        </a>
                       </span>
-                    </a>
-                  </span>
-                </th>
+                    </th>
+                  ))}
+                </tr>
+              )}
 
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    Product
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort-down" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
+              {/* <th>
+                    <span className="is-flex is-flex-wrap-nowrap">
+                      ID
+                      <a href="#/">
+                        <span className="icon">
+                          <i data-cy="SortIcon" className="fas fa-sort" />
+                        </span>
+                      </a>
+                    </span>
+                  </th>
 
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    Category
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort-up" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
+                  <th>
+                    <span className="is-flex is-flex-wrap-nowrap">
+                      Product
+                      <a href="#/">
+                        <span className="icon">
+                          <i data-cy="SortIcon" className="fas fa-sort-down" />
+                        </span>
+                      </a>
+                    </span>
+                  </th>
 
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    User
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-              </tr>
+                  <th>
+                    <span className="is-flex is-flex-wrap-nowrap">
+                      Category
+                      <a href="#/">
+                        <span className="icon">
+                          <i data-cy="SortIcon" className="fas fa-sort-up" />
+                        </span>
+                      </a>
+                    </span>
+                  </th>
+
+                  <th>
+                    <span className="is-flex is-flex-wrap-nowrap">
+                      User
+                      <a href="#/">
+                        <span className="icon">
+                          <i data-cy="SortIcon" className="fas fa-sort" />
+                        </span>
+                      </a>
+                    </span>
+                  </th> */}
             </thead>
 
             <tbody>
-              {productsFiltedByOwner.map(product => {
+              {filteredProducts.map(product => {
                 const { user, category } = product;
 
                 return (
